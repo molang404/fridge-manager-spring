@@ -5,9 +5,9 @@ import com.lineacademy.fridgemanagerspring.domain.user.User;
 import com.lineacademy.fridgemanagerspring.dto.user.request.CreateUserRequest;
 import com.lineacademy.fridgemanagerspring.dto.user.request.LoginRequest;
 import com.lineacademy.fridgemanagerspring.dto.user.request.UpdateUserRequest;
+import com.lineacademy.fridgemanagerspring.dto.user.request.WithdrawUserRequest;
 import com.lineacademy.fridgemanagerspring.repository.FridgeRepository;
 import com.lineacademy.fridgemanagerspring.repository.UserRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -71,7 +71,7 @@ public class UserService {
     }
 
     @Transactional
-    public User login(@Valid LoginRequest request) {
+    public User login(LoginRequest request) {
         // 1. 받아온 email값을 통해 사용자가 있는지 확인하고
         // 함수처럼 만들어서 쓸 수 있는게 Java에서 지원되지만 함수는 아니고
         // 람다 표현식 () ->
@@ -121,5 +121,22 @@ public class UserService {
         return user;
         // repository에서 가져온 내용을 할당한 user 객체의 값이 변경된 상태에서 메서드 실행이 끝나면
         // 자동으로 디비의 값도 업데이트 함 => Dirty Check
+    }
+
+    @Transactional
+    public void withdrawUser(Long userId, WithdrawUserRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
+
+        if (user.getDeletedAt() != null) {
+            throw new RuntimeException("USER_NOT_FOUND");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("INVALID_CREDENTIALS");
+        }
+
+        // 소프트삭제 -> deletedAt 시간을 넣고 업데이트
+
+        user.markAsDeleted();
     }
 }
