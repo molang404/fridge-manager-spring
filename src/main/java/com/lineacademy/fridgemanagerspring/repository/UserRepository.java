@@ -10,6 +10,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email); // String 이메일을 통해 검색해오는 메서드
 
     // Nickname을 기준으로 존재 유무를 확인하는 메서드
+    // SELECT count(*) FROM User WHERE nickname = ""   =? 없으면 0, 있으면 양수가 나옴 => 0일 때 false, 양수일 때 true
     boolean existsByNickname(String nickname);
 
     // 내 ID를 제외하고 해당 닉네임이 존재하는지 검사하는 메서드
